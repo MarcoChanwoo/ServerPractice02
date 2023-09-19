@@ -38,8 +38,38 @@ export const register = async (ctx) => {
         ctx.throw(500, e);
     }
 };
+
+/*
+    POST /api/auth/login
+    {
+        username: marco,
+        password: my123
+    }
+*/
 export const login = async (ctx) => {
-    // 로그인
+    const { username, password } = ctx.request.body;
+    // username, password가 없으면 에러처리
+    if (!username || !password) {
+        ctx.status = 401; // Unauthorized
+        return;
+    }
+
+    try {
+        const user = await User.findByUsername(username);
+        if (!user) {
+            ctx.status = 401;
+            return;
+        }
+        const valid = await user.checkPassword(password);
+        // 잘못된 비밀번호
+        if (!valid) {
+            ctx.status = 401;
+            return;
+        }
+        ctx.body = user.serialize();
+    } catch (e) {
+        ctx.throw(500, e);
+    }
 };
 export const check = async (ctx) => {
     // 로그인 확인
