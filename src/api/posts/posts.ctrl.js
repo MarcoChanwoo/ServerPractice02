@@ -68,7 +68,15 @@ export const list = async (ctx) => {
             .exec();
         const postCount = await Post.countDocuments().exec(); // 라스트 페이지 표시
         ctx.set('Last-Page', Math.ceil(postCount / 10));
-        ctx.body = posts;
+        ctx.body = posts
+            .map((post) => post.toJSON())
+            .map((post) => ({
+                ...post,
+                body:
+                    post.body.length < 200
+                        ? post.body
+                        : `${post.body.slice(0, 200)}...`,
+            }));
     } catch (e) {
         ctx.throw(500, e);
     }
