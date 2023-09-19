@@ -53,10 +53,21 @@ export const write = async (ctx) => {
     GET /api/posts
 */
 export const list = async (ctx) => {
+    const page = parseInt(ctx.query.page || '1', 10);
+
+    // 페이지 설정
+    if (page < 1) {
+        ctx.status = 400;
+        return;
+    }
+
     try {
         const posts = await Post.find()
             .sort({ _id: -1 }) // 포스트를 역순으로 출력
+            .limit(10) // 보이는 갯수를 10개로 제한
             .exec();
+        const postCount = await Post.countDocuments().exec(); // 라스트 페이지 표시
+        ctx.set('Last-Page', Math.ceil(postCount / 10));
         ctx.body = posts;
     } catch (e) {
         ctx.throw(500, e);
